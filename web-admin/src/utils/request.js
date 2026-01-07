@@ -23,16 +23,46 @@ request.interceptors.request.use(
 // 响应拦截器
 request.interceptors.response.use(
     response => {
-        return response.data
+        return response
     },
-    error => {
-        const message = error.response?.data?.error || error.message || '请求失败'
-        ElMessage.error(message)
+    async error => {
+        const originalRequest = error.config
 
-        if (error.response?.status === 401) {
-            localStorage.removeItem('token')
-            window.location.href = '/login'
+        // 如果是401错误且不是刷新token的请求
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true
+
+            const refreshToken = localStorage.getItem('refresh_token')
+            if (refreshToken) {
+                try {
+                    // 尝试刷新token
+                    const response = await axios.post('/api/token/refresh/', {
+                        refresh: refreshToken
+                    })
+
+                    const { access } = response.data
+                    localStorage.setItem('token', access)
+
+                    // 使用新token重试原请求
+                    originalRequest.headers.Authorization = `Bearer ${access}`
+                    return request(originalRequest)
+                } catch (refreshError) {
+                    // 刷新失败，清除token并跳转登录
+                    localStorage.removeItem('token')
+                    localStorage.removeItem('refresh_token')
+                    window.location.href = '/login'
+                    return Promise.reject(refreshError)
+                }
+            } else {
+                // 没有refresh token，直接跳转登录
+                localStorage.removeItem('token')
+                window.location.href = '/login'
+            }
         }
+
+        // 其他错误
+        const message = error.response?.data?.detail || error.response?.data?.error || error.message || '请求失败'
+        ElMessage.error(message)
 
         return Promise.reject(error)
     }

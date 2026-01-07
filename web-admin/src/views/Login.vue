@@ -16,6 +16,7 @@
             type="password"
             placeholder="请输入密码"
             prefix-icon="Lock"
+            show-password
             @keyup.enter="handleLogin"
           />
         </el-form-item>
@@ -34,6 +35,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import axios from 'axios'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -56,17 +58,29 @@ const handleLogin = async () => {
 
   loading.value = true
   try {
-    // TODO: 调用登录API
-    // const response = await login(loginForm)
-    // userStore.setToken(response.token)
-    // userStore.setUser(response.user)
+    // 调用JWT登录接口
+    const response = await axios.post('/api/token/', {
+      username: loginForm.username,
+      password: loginForm.password
+    })
     
-    // 模拟登录
-    userStore.setToken('mock-token')
+    // 存储token
+    const { access, refresh } = response.data
+    localStorage.setItem('token', access)
+    localStorage.setItem('refresh_token', refresh)
+    
+    // 更新store
+    userStore.setToken(access)
+    
     ElMessage.success('登录成功')
     router.push('/')
   } catch (error) {
-    console.error(error)
+    console.error('登录失败', error)
+    if (error.response?.status === 401) {
+      ElMessage.error('工号或密码错误')
+    } else {
+      ElMessage.error(error.response?.data?.detail || '登录失败，请稍后重试')
+    }
   } finally {
     loading.value = false
   }

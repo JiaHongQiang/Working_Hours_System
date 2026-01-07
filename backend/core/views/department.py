@@ -17,9 +17,6 @@ from core.serializers import (
 class DepartmentViewSet(viewsets.ModelViewSet):
     """科室管理ViewSet"""
     
-    # 临时关闭认证，开发调试用
-    permission_classes = [AllowAny]
-    
     queryset = Department.objects.select_related('parent', 'manager').filter(is_active=True)
     serializer_class = DepartmentSerializer
     filterset_fields = ['parent', 'dept_type', 'is_active']

@@ -73,28 +73,28 @@
         style="width: 100%"
       >
         <el-table-column prop="emp_code" label="工号" width="100" fixed />
-        <el-table-column prop="full_name" label="姓名" width="100" />
-        <el-table-column prop="admin_dept_name" label="行政科室" width="150" />
-        <el-table-column prop="scheduling_ward_name" label="排班病区" width="150">
+        <el-table-column prop="full_name" label="姓名" width="120" />
+        <el-table-column prop="admin_dept_name" label="行政科室" min-width="140" />
+        <el-table-column prop="scheduling_ward_name" label="排班病区" min-width="140">
           <template #default="{ row }">
             {{ row.scheduling_ward_name || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="staff_category_display" label="人员类别" width="100">
+        <el-table-column prop="staff_category_display" label="人员类别" width="100" align="center">
           <template #default="{ row }">
             <el-tag :type="getCategoryTagType(row.staff_category)">
               {{ row.staff_category_display }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="emp_status_display" label="用工性质" width="100">
+        <el-table-column prop="emp_status_display" label="用工性质" width="100" align="center">
           <template #default="{ row }">
             <el-tag :type="getStatusTagType(row.emp_status)" effect="plain">
               {{ row.emp_status_display }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="job_title" label="职称" width="120">
+        <el-table-column prop="job_title" label="职称" width="120" show-overflow-tooltip>
           <template #default="{ row }">
             {{ row.job_title || '-' }}
           </template>
@@ -485,13 +485,26 @@ const handleSubmit = async () => {
   await formRef.value.validate(async (valid) => {
     if (!valid) return
     
+    // 构造提交数据，处理空值
+    const submitData = { ...formData }
+    if (!submitData.scheduling_ward) submitData.scheduling_ward = null
+    if (!submitData.phone) submitData.phone = ''
+    if (!submitData.id_card) submitData.id_card = ''
+    if (!submitData.hire_date) submitData.hire_date = null
+    
+    // 如果是编辑，不需要传password
+    if (isEdit.value) {
+      delete submitData.password
+      delete submitData.username
+    }
+
     submitLoading.value = true
     try {
       if (isEdit.value) {
-        await request.patch(`/users/${formData.id}/`, formData)
+        await request.patch(`/users/${formData.id}/`, submitData)
         ElMessage.success('更新成功')
       } else {
-        await request.post('/users/', formData)
+        await request.post('/users/', submitData)
         ElMessage.success('新增成功')
       }
       dialogVisible.value = false

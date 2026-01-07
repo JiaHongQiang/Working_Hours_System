@@ -8,18 +8,23 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth import authenticate
 import requests
 from django.conf import settings
-from core.models import User
-from core.serializers import UserSerializer, WechatBindSerializer
+from core.models import Employee
+from core.serializers import EmployeeSerializer, EmployeeListSerializer, WechatBindSerializer
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class EmployeeViewSet(viewsets.ModelViewSet):
     """员工管理ViewSet"""
     
-    queryset = User.objects.select_related('department').filter(status=1)
-    serializer_class = UserSerializer
-    filterset_fields = ['department', 'status']
-    search_fields = ['username', 'full_name', 'phone']
-    ordering = ['-id']
+    queryset = Employee.objects.select_related('admin_dept', 'scheduling_ward').filter(work_status=1)
+    serializer_class = EmployeeSerializer
+    filterset_fields = ['admin_dept', 'scheduling_ward', 'staff_category', 'emp_status', 'work_status']
+    search_fields = ['emp_code', 'full_name', 'phone', 'username']
+    ordering = ['admin_dept', 'emp_code']
+    
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return EmployeeListSerializer
+        return EmployeeSerializer
     
     @action(detail=False, methods=['post'], permission_classes=[AllowAny])
     def wechat_login(self, request):
@@ -62,12 +67,12 @@ class UserViewSet(viewsets.ModelViewSet):
             
             # 查找已绑定的用户
             try:
-                user = User.objects.get(openid=openid, status=1)
+                user = Employee.objects.get(openid=openid, work_status=1)
                 return Response({
                     'token': '生成JWT Token',  # 需要集成JWT
-                    'user': UserSerializer(user).data
+                    'user': EmployeeSerializer(user).data
                 })
-            except User.DoesNotExist:
+            except Employee.DoesNotExist:
                 return Response({
                     'need_bind': True,
                     'openid': openid
@@ -87,31 +92,32 @@ class UserViewSet(viewsets.ModelViewSet):
         
         Body:
         {
-            "code": "微信code",
-            "username": "工号",
-            "password": "密码"
+            "openid": "微信openid",
+            "emp_code": "工号",
+            "phone": "手机号(可选)"
         }
         """
         serializer = WechatBindSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        # 验证员工账号
-        user = authenticate(
-            username=serializer.validated_data['username'],
-            password=serializer.validated_data['password']
-        )
+        openid = serializer.validated_data['openid']
+        emp_code = serializer.validated_data['emp_code']
         
-        if not user:
+        try:
+            employee = Employee.objects.get(emp_code=emp_code, work_status=1)
+            employee.openid = openid
+            employee.save(update_fields=['openid'])
+            
+            return Response({
+                'message': '绑定成功',
+                'user': EmployeeSerializer(employee).data
+            })
+        except Employee.DoesNotExist:
             return Response(
-                {'error': '工号或密码错误'},
+                {'error': '工号不存在或已离职'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        # TODO: 获取openid并绑定
-        # user.openid = openid
-        # user.save()
-        
-        return Response({
-            'message': '绑定成功',
-            'user': UserSerializer(user).data
-        })
+
+
+# 兼容旧的URL配置
+UserViewSet = EmployeeViewSet

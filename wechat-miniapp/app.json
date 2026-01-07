@@ -1,0 +1,73 @@
+{
+    "pages": [
+        "pages/index/index",
+        "pages/roster/roster",
+        "pages/punch/punch",
+        "pages/overtime/overtime",
+        "pages/profile/profile"
+    ],
+    "window": {
+        "backgroundTextStyle": "light",
+        "navigationBarBackgroundColor": "#409EFF",
+        "navigationBarTitleText": "医院工时系统",
+        "navigationBarTextStyle": "white"
+    },
+    "tabBar": {
+        "color": "#999",
+        "selectedColor": "#409EFF",
+        "backgroundColor": "#fff",
+        "borderStyle": "black",
+        "list": [
+            {
+                "pagePath": "pages/index/index",
+                "text": "首页",
+                "iconPath": "images/home.png",
+                "selectedIconPath": "images/home-active.png"
+            },
+            {
+                "pagePath": "pages/roster/roster",
+                "text": "排班",
+                "iconPath": "images/calendar.png",
+                "selectedIconPath": "images/calendar-active.png"
+            },
+            {
+                "pagePath": "pages/punch/punch",
+                "text": "打卡",
+                "iconPath": "images/clock.png",
+                "selectedIconPath": "images/clock-active.png"
+            },
+            {
+                "pagePath": "pages/overtime/overtime",
+                "text": "加班",
+                "iconPath": "images/file.png",
+                "selectedIconPath": "images/file-active.png"
+            },
+            {
+                "pagePath": "pages/profile/profile",
+                "text": "我的",
+                "iconPath": "images/user.png",
+                "selectedIconPath": "images/user-active.png"
+            }
+        ]
+    },
+    "usingComponents": {
+        "van-button": "@vant/weapp/button/index",
+        "van-cell": "@vant/weapp/cell/index",
+        "van-cell-group": "@vant/weapp/cell-group/index",
+        "van-calendar": "@vant/weapp/calendar/index",
+        "van-toast": "@vant/weapp/toast/index",
+        "van-dialog": "@vant/weapp/dialog/index",
+        "van-empty": "@vant/weapp/empty/index",
+        "van-loading": "@vant/weapp/loading/index",
+        "van-card": "@vant/weapp/card/index"
+    },
+    "permission": {
+        "scope.userLocation": {
+            "desc": "用于打卡位置验证"
+        }
+    },
+    "requiredBackgroundModes": [
+        "location"
+    ],
+    "sitemapLocation": "sitemap.json"
+}

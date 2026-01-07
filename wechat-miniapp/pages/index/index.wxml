@@ -1,0 +1,51 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <view class="user-card">
+    <view class="user-info">
+      <view class="user-avatar">
+        <text>{{ userInfo.full_name ? userInfo.full_name.charAt(0) : '?' }}</text>
+      </view>
+      <view class="user-details">
+        <text class="user-name">{{ userInfo.full_name || '未登录' }}</text>
+        <text class="user-dept">{{ userInfo.department_name || '' }}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="function-grid">
+    <view class="grid-item" bindtap="goToRoster">
+      <view class="grid-icon" style="background: #409EFF;">📅</view>
+      <text>我的排班</text>
+    </view>
+    <view class="grid-item" bindtap="goToPunch">
+      <view class="grid-icon" style="background: #67C23A;">⏰</view>
+      <text>立即打卡</text>
+    </view>
+    <view class="grid-item" bindtap="goToOvertime">
+      <view class="grid-icon" style="background: #E6A23C;">📝</view>
+      <text>加班申报</text>
+    </view>
+    <view class="grid-item" bindtap="goToProfile">
+      <view class="grid-icon" style="background: #F56C6C;">👤</view>
+      <text>个人中心</text>
+    </view>
+  </view>
+
+  <view class="stats-card">
+    <view class="card-title">本月统计</view>
+    <view class="stats-row">
+      <view class="stat-item">
+        <text class="stat-value">{{ stats.attendanceDays }}</text>
+        <text class="stat-label">出勤天数</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{ stats.overtimeHours }}</text>
+        <text class="stat-label">加班小时</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{ stats.overtimePay }}</text>
+        <text class="stat-label">加班费(元)</text>
+      </view>
+    </view>
+  </view>
+</view>

@@ -24,7 +24,7 @@ sudo mysql
 
 # 创建数据库和用户
 CREATE DATABASE hospital_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'hospital_user'@'localhost' IDENTIFIED BY 'your_strong_password';
+CREATE USER 'hospital_user'@'localhost' IDENTIFIED BY 'Huaiye@2020**';
 GRANT ALL PRIVILEGES ON hospital_db.* TO 'hospital_user'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
@@ -33,8 +33,8 @@ EXIT;
 #### 1.3 安装Python环境
 
 ```bash
-sudo apt install python3.10 python3.10-venv python3-pip python3-dev -y
-sudo apt install default-libmysqlclient-dev build-essential -y
+sudo apt install python3 python3-venv python3-pip python3-dev -y
+sudo apt install pkg-config default-libmysqlclient-dev build-essential -y
 ```
 
 #### 1.4 安装Nginx

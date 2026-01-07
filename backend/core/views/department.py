@@ -4,6 +4,7 @@ API视图 - 科室管理
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from core.models import Department
 from core.serializers import (
     DepartmentSerializer, 
@@ -15,6 +16,9 @@ from core.serializers import (
 
 class DepartmentViewSet(viewsets.ModelViewSet):
     """科室管理ViewSet"""
+    
+    # 临时关闭认证，开发调试用
+    permission_classes = [AllowAny]
     
     queryset = Department.objects.select_related('parent', 'manager').filter(is_active=True)
     serializer_class = DepartmentSerializer

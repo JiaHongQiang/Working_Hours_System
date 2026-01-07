@@ -23,6 +23,9 @@ from core.serializers import (
 class EmployeeViewSet(viewsets.ModelViewSet):
     """员工管理ViewSet"""
     
+    # 临时关闭认证，开发调试用
+    permission_classes = [AllowAny]
+    
     queryset = Employee.objects.select_related('admin_dept', 'scheduling_ward').all()
     serializer_class = EmployeeSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]

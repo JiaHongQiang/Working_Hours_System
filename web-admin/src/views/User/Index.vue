@@ -390,7 +390,7 @@ const getStatusTagType = (status) => {
 // 加载科室列表
 const loadDepartments = async () => {
   try {
-    const res = await request.get('/api/departments/', {
+    const res = await request.get('/departments/', {
       params: { is_active: true }
     })
     departmentList.value = res.data.results || res.data
@@ -413,7 +413,7 @@ const loadData = async () => {
       staff_category: filterForm.staff_category || undefined,
       emp_status: filterForm.emp_status || undefined
     }
-    const res = await request.get('/api/users/', { params })
+    const res = await request.get('/users/', { params })
     tableData.value = res.data.results || res.data
     pagination.total = res.data.count || tableData.value.length
   } catch (error) {
@@ -488,10 +488,10 @@ const handleSubmit = async () => {
     submitLoading.value = true
     try {
       if (isEdit.value) {
-        await request.patch(`/api/users/${formData.id}/`, formData)
+        await request.patch(`/users/${formData.id}/`, formData)
         ElMessage.success('更新成功')
       } else {
-        await request.post('/api/users/', formData)
+        await request.post('/users/', formData)
         ElMessage.success('新增成功')
       }
       dialogVisible.value = false
@@ -513,7 +513,7 @@ const handleDelete = (row) => {
     { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
   ).then(async () => {
     try {
-      await request.delete(`/api/users/${row.id}/`)
+      await request.delete(`/users/${row.id}/`)
       ElMessage.success('删除成功')
       loadData()
     } catch (error) {
@@ -534,7 +534,7 @@ const handleResetPassword = (row) => {
       return
     }
     try {
-      await request.post(`/api/users/${row.id}/reset_password/`, { password: value })
+      await request.post(`/users/${row.id}/reset_password/`, { password: value })
       ElMessage.success('密码重置成功')
     } catch (error) {
       ElMessage.error('重置失败')

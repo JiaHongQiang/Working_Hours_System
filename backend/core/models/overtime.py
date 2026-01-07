@@ -23,7 +23,7 @@ class OvertimeRecord(models.Model):
         help_text='休息日临时召回时可能无排班'
     )
     user = models.ForeignKey(
-        'User',
+        'Employee',
         on_delete=models.CASCADE,
         related_name='overtime_records',
         verbose_name='员工'
@@ -76,7 +76,7 @@ class OvertimeRecord(models.Model):
     
     # 审批人员
     approved_by = models.ForeignKey(
-        'User',
+        'Employee',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

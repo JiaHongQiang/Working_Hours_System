@@ -8,7 +8,7 @@ class Roster(models.Model):
     """排班表 - 记录具体的排班安排"""
     
     user = models.ForeignKey(
-        'User',
+        'Employee',
         on_delete=models.CASCADE,
         related_name='rosters',
         verbose_name='员工'
@@ -25,7 +25,7 @@ class Roster(models.Model):
     
     # 审计字段
     created_by = models.ForeignKey(
-        'User',
+        'Employee',
         on_delete=models.SET_NULL,
         null=True,
         related_name='created_rosters',

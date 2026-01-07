@@ -19,7 +19,7 @@ class AttendanceLog(models.Model):
     )
     
     user = models.ForeignKey(
-        'User',
+        'Employee',
         on_delete=models.CASCADE,
         related_name='attendance_logs',
         verbose_name='员工'

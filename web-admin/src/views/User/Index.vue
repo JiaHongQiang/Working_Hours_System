@@ -556,17 +556,41 @@ onMounted(() => {
 
 <style scoped>
 .user-management {
-  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .filter-card {
-  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.table-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.table-card :deep(.el-card__body) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  overflow: hidden;
 }
 
 .filter-form {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+/* 让表格自动填充剩余空间 */
+.table-card :deep(.el-table) {
+  flex: 1;
+  height: 0;
 }
 
 .card-header {
@@ -584,9 +608,10 @@ onMounted(() => {
   margin-top: 16px;
   display: flex;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .el-form-item {
-  margin-bottom: 18px;
+  margin-bottom: 0; /* 移除默认下边距，由gap控制 */
 }
 </style>

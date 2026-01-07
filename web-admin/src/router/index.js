@@ -20,6 +20,12 @@ const routes = [
                 meta: { title: '首页' }
             },
             {
+                path: 'user',
+                name: 'User',
+                component: () => import('@/views/User/Index.vue'),
+                meta: { title: '人员管理' }
+            },
+            {
                 path: 'roster',
                 name: 'Roster',
                 component: () => import('@/views/Roster/Index.vue'),

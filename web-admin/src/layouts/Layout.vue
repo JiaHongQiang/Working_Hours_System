@@ -15,6 +15,10 @@
           <el-icon><HomeFilled /></el-icon>
           <span>首页</span>
         </el-menu-item>
+        <el-menu-item index="/user">
+          <el-icon><User /></el-icon>
+          <span>人员管理</span>
+        </el-menu-item>
         <el-menu-item index="/roster">
           <el-icon><Calendar /></el-icon>
           <span>排班管理</span>

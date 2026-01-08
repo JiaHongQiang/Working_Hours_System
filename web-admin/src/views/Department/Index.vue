@@ -11,14 +11,14 @@
       </template>
 
       <el-table :data="tableData" v-loading="loading" style="width: 100%" row-key="id" default-expand-all>
-        <el-table-column prop="dept_name" label="名称" min-width="180" />
-        <el-table-column prop="dept_code" label="编码" width="120" />
+        <el-table-column prop="dept_name" label="名称" min-width="200" />
+        <el-table-column prop="dept_code" label="编码" min-width="120" />
         <el-table-column prop="dept_type_display" label="类型" width="100">
           <template #default="{ row }">
             <el-tag :type="getDeptTypeTag(row.dept_type)">{{ row.dept_type_display }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="manager_name" label="负责人" width="120">
+        <el-table-column prop="manager_name" label="负责人" min-width="120">
              <template #default="{ row }">
                 {{ row.manager_name || '-' }}
              </template>

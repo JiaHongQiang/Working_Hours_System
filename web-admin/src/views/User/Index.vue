@@ -73,7 +73,7 @@
         style="width: 100%"
       >
         <el-table-column prop="emp_code" label="工号" width="100" fixed />
-        <el-table-column prop="full_name" label="姓名" width="120" />
+        <el-table-column prop="full_name" label="姓名" min-width="120" />
         <el-table-column prop="admin_dept_name" label="行政科室" min-width="140" />
         <el-table-column prop="scheduling_ward_name" label="排班病区" min-width="140">
           <template #default="{ row }">
@@ -94,7 +94,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="job_title" label="职称" width="120" show-overflow-tooltip>
+        <el-table-column prop="job_title" label="职称" min-width="120" show-overflow-tooltip>
           <template #default="{ row }">
             {{ row.job_title || '-' }}
           </template>

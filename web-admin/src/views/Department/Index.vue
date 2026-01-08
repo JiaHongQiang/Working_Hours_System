@@ -40,7 +40,12 @@
     </el-card>
 
     <!-- 弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
+    <el-dialog 
+      v-model="dialogVisible" 
+      :title="dialogTitle" 
+      width="500px" 
+      :close-on-click-modal="false"
+    >
       <el-form ref="formRef" :model="formData" :rules="rules" label-width="80px">
         <el-form-item label="名称" prop="dept_name">
           <el-input v-model="formData.dept_name" placeholder="请输入名称" />
@@ -182,7 +187,22 @@ const handleSubmit = async () => {
             dialogVisible.value = false
             loadData()
         } catch (err) {
-             ElMessage.error(err.response?.data?.detail || '操作失败')
+             console.error(err)
+             let message = '操作失败'
+             if (err.response?.data) {
+                 const data = err.response.data
+                 // 处理 Django DRF 的错误格式
+                 if (typeof data === 'object') {
+                    // 如果是字段错误，如 {"dept_code": ["具有 该 编码 的 Department 已存在。"]}
+                    const firstKey = Object.keys(data)[0]
+                    const firstError = Array.isArray(data[firstKey]) ? data[firstKey][0] : data[firstKey]
+                    message = `${firstKey}: ${firstError}`
+                    // 尝试翻译常用字段名
+                    if (firstKey === 'dept_code') message = `编码重复或无效: ${firstError}`
+                    if (firstKey === 'detail') message = firstError
+                 }
+             }
+             ElMessage.error(message)
         } finally {
             submitLoading.value = false
         }

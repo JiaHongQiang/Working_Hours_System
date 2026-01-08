@@ -113,17 +113,19 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column label="操作" width="240" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link size="small" @click="handleEdit(row)">
-              <el-icon><Edit /></el-icon> 编辑
-            </el-button>
-            <el-button type="warning" link size="small" @click="handleResetPassword(row)">
-              <el-icon><Key /></el-icon> 重置密码
-            </el-button>
-            <el-button type="danger" link size="small" @click="handleDelete(row)">
-              <el-icon><Delete /></el-icon> 删除
-            </el-button>
+            <div class="action-buttons">
+              <el-button type="primary" link size="small" @click="handleEdit(row)">
+                <el-icon><Edit /></el-icon> 编辑
+              </el-button>
+              <el-button type="warning" link size="small" @click="handleResetPassword(row)">
+                <el-icon><Key /></el-icon> 重置密码
+              </el-button>
+              <el-button type="danger" link size="small" @click="handleDelete(row)">
+                <el-icon><Delete /></el-icon> 删除
+              </el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -606,6 +608,13 @@ onMounted(() => {
   height: 0;
 }
 
+.table-card :deep(.action-buttons) {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -626,5 +635,14 @@ onMounted(() => {
 
 .el-form-item {
   margin-bottom: 0; /* 移除默认下边距，由gap控制 */
+}
+
+/* 筛选下拉框宽度 */
+.filter-form .el-select {
+  width: 160px;
+}
+
+.filter-form .el-input {
+  width: 180px;
 }
 </style>

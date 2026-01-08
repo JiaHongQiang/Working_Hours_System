@@ -130,6 +130,18 @@ const getDeptTypeTag = (type) => {
     return map[type]
 }
 
+// 递归过滤掉树中的病区节点
+const filterWardFromTree = (tree) => {
+    if (!tree || !Array.isArray(tree)) return []
+    
+    return tree
+        .filter(node => node.dept_type !== 'WARD')  // 过滤掉病区
+        .map(node => ({
+            ...node,
+            children: node.children ? filterWardFromTree(node.children) : []
+        }))
+}
+
 // 加载数据
 const loadData = async () => {
   loading.value = true
@@ -151,7 +163,14 @@ const loadData = async () => {
     // 如果是编辑上级，需要完整的树
     if (!deptTree.value.length) {
         const treeRes = await request.get('/departments/tree/')
-        deptTree.value = treeRes.data
+        let treeData = treeRes.data
+        
+        // 如果是病区管理，上级只能选科室，递归过滤掉病区
+        if (props.type === 'WARD') {
+            treeData = filterWardFromTree(treeData)
+        }
+        
+        deptTree.value = treeData
     }
   } catch (err) {
     console.error(err)

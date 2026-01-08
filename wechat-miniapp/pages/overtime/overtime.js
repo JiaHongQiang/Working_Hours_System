@@ -139,6 +139,24 @@ Page({
             return
         }
 
+        // 开发模式直接成功
+        if (app.globalData.devMode) {
+            wx.showToast({ title: '申报成功', icon: 'success' })
+            this.setData({
+                form: {
+                    workDate: this.formatDate(new Date()),
+                    actualStart: '',
+                    actualEnd: '',
+                    reason: ''
+                }
+            })
+            setTimeout(() => {
+                this.setData({ activeTab: 'records' })
+                this.loadRecords()
+            }, 1500)
+            return
+        }
+
         // 构造datetime格式
         const actualStartDT = `${workDate}T${actualStart}:00`
         const actualEndDT = `${workDate}T${actualEnd}:00`
@@ -188,6 +206,12 @@ Page({
 
     // 加载加班记录
     loadRecords() {
+        // 开发模式使用模拟数据
+        if (app.globalData.devMode) {
+            this.loadMockRecords()
+            return
+        }
+
         this.setData({ loading: true })
 
         // 获取最近3个月的记录
@@ -204,10 +228,40 @@ Page({
             this.setData({ records })
         }).catch(err => {
             console.error('加载记录失败:', err)
-            wx.showToast({ title: '加载失败', icon: 'error' })
         }).finally(() => {
             this.setData({ loading: false })
         })
+    },
+
+    // 加载模拟记录（开发模式）
+    loadMockRecords() {
+        const mockRecords = [
+            {
+                id: 1,
+                work_date: '2026-01-07',
+                actual_start: '18:00',
+                actual_end: '22:00',
+                raw_ot_duration: 4,
+                approved_ot_duration: 4,
+                multiplier: 1.5,
+                final_pay_amount: 120,
+                status: 'APPROVED',
+                reason: '紧急手术值班'
+            },
+            {
+                id: 2,
+                work_date: '2026-01-05',
+                actual_start: '17:00',
+                actual_end: '21:00',
+                raw_ot_duration: 4,
+                approved_ot_duration: 4,
+                multiplier: 1.5,
+                final_pay_amount: 120,
+                status: 'PENDING',
+                reason: '科室会议'
+            }
+        ]
+        this.setData({ records: mockRecords, loading: false })
     },
 
     // ========== 工具方法 ==========
@@ -218,26 +272,6 @@ Page({
         const month = String(date.getMonth() + 1).padStart(2, '0')
         const day = String(date.getDate()).padStart(2, '0')
         return `${year}-${month}-${day}`
-    },
-
-    // 获取状态文字
-    getStatusText(status) {
-        const map = {
-            'PENDING': '待审批',
-            'APPROVED': '已通过',
-            'REJECTED': '已驳回'
-        }
-        return map[status] || status
-    },
-
-    // 获取状态样式类
-    getStatusClass(status) {
-        const map = {
-            'PENDING': 'status-pending',
-            'APPROVED': 'status-approved',
-            'REJECTED': 'status-rejected'
-        }
-        return map[status] || ''
     },
 
     // 下拉刷新

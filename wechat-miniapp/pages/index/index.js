@@ -1,4 +1,5 @@
 // pages/index/index.js
+// 首页 - 工时统计概览
 const app = getApp()
 
 Page({
@@ -8,7 +9,8 @@ Page({
             attendanceDays: 0,
             overtimeHours: 0,
             overtimePay: 0
-        }
+        },
+        loading: false
     },
 
     onLoad() {
@@ -18,6 +20,7 @@ Page({
 
     onShow() {
         // 页面显示时刷新数据
+        this.loadUserInfo()
         this.loadStats()
     },
 
@@ -25,29 +28,45 @@ Page({
         const userInfo = app.globalData.userInfo || wx.getStorageSync('userInfo')
         if (userInfo) {
             this.setData({ userInfo })
-        } else {
-            // 未登录，跳转到登录页面
-            app.login()
+        } else if (!app.globalData.devMode) {
+            // 非开发模式且未登录，尝试登录
+            app.login().catch(err => {
+                console.error('登录失败:', err)
+            })
         }
     },
 
     loadStats() {
-        // 加载统计数据
+        // 开发模式使用模拟数据
+        if (app.globalData.devMode) {
+            this.setData({
+                stats: {
+                    attendanceDays: 22,
+                    overtimeHours: 16,
+                    overtimePay: 480
+                }
+            })
+            return
+        }
+
+        // 生产模式：从API加载统计数据
         const now = new Date()
         const year = now.getFullYear()
         const month = String(now.getMonth() + 1).padStart(2, '0')
         const startDate = `${year}-${month}-01`
         const endDate = `${year}-${month}-${new Date(year, month, 0).getDate()}`
 
+        this.setData({ loading: true })
+
         app.request({
             url: `/overtime/statistics/?start_date=${startDate}&end_date=${endDate}`,
             method: 'GET'
         }).then(data => {
             if (data && data.length > 0) {
-                const myStats = data[0]  // 假设只返回当前用户的数据
+                const myStats = data[0]
                 this.setData({
                     stats: {
-                        attendanceDays: myStats.total_hours / 8 || 0,
+                        attendanceDays: Math.round((myStats.total_hours || 0) / 8),
                         overtimeHours: myStats.total_hours || 0,
                         overtimePay: myStats.total_pay || 0
                     }
@@ -55,6 +74,8 @@ Page({
             }
         }).catch(err => {
             console.error('加载统计数据失败:', err)
+        }).finally(() => {
+            this.setData({ loading: false })
         })
     },
 

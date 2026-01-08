@@ -5,228 +5,155 @@ const app = getApp()
 Page({
     data: {
         // 当前时间
-        currentTime: '--:--:--',
+        currentTime: '',
         currentDate: '',
+        weekDay: '',
 
-        // 定位信息
-        latitude: null,
-        longitude: null,
-        address: '获取位置中...',
-        isInGeofence: false,
-        distance: 0,
-
-        // 今日打卡状态
-        hasPunchedIn: false,
-        hasPunchedOut: false,
-        punchInTime: '',
-        punchOutTime: '',
-
-        // 今日记录
-        todayRecords: [],
+        // 定位相关
+        latitude: 0,
+        longitude: 0,
+        locationName: '',
+        inGeofence: false,      // 是否在地理围栏内
+        distance: 0,            // 距离医院的距离
+        locationLoading: false,
 
         // 今日排班
         todayRoster: null,
 
-        // 状态
-        loading: false,
-        locationError: false,
+        // 打卡记录
+        punchRecords: [],
 
-        // 医院位置配置（应从后端获取）
-        hospitalLocation: {
-            latitude: 39.9042,
-            longitude: 116.4074,
-            radius: 200  // 允许打卡半径(米)
-        }
+        // 地理围栏配置
+        hospitalLat: 39.9042,  // 医院纬度（从后端获取，这里用默认值）
+        hospitalLng: 116.4074, // 医院经度
+        geofenceRadius: 200,   // 围栏半径（米）
     },
 
-    // 定时器ID
-    timeIntervalId: null,
-
     onLoad() {
-        this.startClock()
+        this.updateTime()
+        // 每秒更新时间
+        this.timeInterval = setInterval(() => {
+            this.updateTime()
+        }, 1000)
+
         this.getLocation()
         this.loadTodayData()
+    },
+
+    onUnload() {
+        if (this.timeInterval) {
+            clearInterval(this.timeInterval)
+        }
     },
 
     onShow() {
         this.loadTodayData()
     },
 
-    onUnload() {
-        // 清除定时器
-        if (this.timeIntervalId) {
-            clearInterval(this.timeIntervalId)
-        }
-    },
+    // 更新当前时间显示
+    updateTime() {
+        const now = new Date()
+        const hours = String(now.getHours()).padStart(2, '0')
+        const minutes = String(now.getMinutes()).padStart(2, '0')
+        const seconds = String(now.getSeconds()).padStart(2, '0')
 
-    // 启动实时时钟
-    startClock() {
-        const updateTime = () => {
-            const now = new Date()
-            const time = now.toLocaleTimeString('zh-CN', { hour12: false })
-            const date = `${now.getFullYear()}年${now.getMonth() + 1}月${now.getDate()}日`
-            this.setData({
-                currentTime: time,
-                currentDate: date
-            })
-        }
-        updateTime()
-        this.timeIntervalId = setInterval(updateTime, 1000)
+        const weekDays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
+
+        this.setData({
+            currentTime: `${hours}:${minutes}:${seconds}`,
+            currentDate: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
+            weekDay: weekDays[now.getDay()]
+        })
     },
 
     // 获取当前位置
     getLocation() {
-        this.setData({ locationError: false })
+        this.setData({ locationLoading: true })
 
         wx.getLocation({
             type: 'gcj02',
             success: (res) => {
-                const distance = this.calculateDistance(
-                    res.latitude,
-                    res.longitude,
-                    this.data.hospitalLocation.latitude,
-                    this.data.hospitalLocation.longitude
-                )
+                const { latitude, longitude } = res
+                const distance = this.calculateDistance(latitude, longitude)
+                const inGeofence = distance <= this.data.geofenceRadius
 
                 this.setData({
-                    latitude: res.latitude,
-                    longitude: res.longitude,
+                    latitude,
+                    longitude,
                     distance: Math.round(distance),
-                    isInGeofence: distance <= this.data.hospitalLocation.radius
+                    inGeofence,
+                    locationName: inGeofence ? '医院范围内' : `距离医院 ${Math.round(distance)}米`,
+                    locationLoading: false
                 })
-
-                // 逆地理编码获取地址（可选）
-                this.reverseGeocoding(res.latitude, res.longitude)
             },
             fail: (err) => {
                 console.error('获取位置失败:', err)
-                this.setData({
-                    locationError: true,
-                    address: '位置获取失败，请检查权限设置'
-                })
-                wx.showToast({
-                    title: '请开启位置权限',
-                    icon: 'none'
-                })
+                // 开发模式：使用模拟位置
+                if (app.globalData.devMode) {
+                    this.setData({
+                        latitude: 39.9042,
+                        longitude: 116.4074,
+                        distance: 50,
+                        inGeofence: true,
+                        locationName: '医院范围内（模拟）',
+                        locationLoading: false
+                    })
+                } else {
+                    this.setData({ locationLoading: false })
+                    wx.showToast({ title: '获取位置失败', icon: 'none' })
+                }
             }
         })
     },
 
-    // 计算两点距离（米）
-    calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371000 // 地球半径(米)
-        const dLat = this.toRad(lat2 - lat1)
-        const dLon = this.toRad(lon2 - lon1)
+    // 计算两点间距离（单位：米）
+    calculateDistance(lat1, lng1) {
+        const lat2 = this.data.hospitalLat
+        const lng2 = this.data.hospitalLng
+
+        const rad = Math.PI / 180
+        const dLat = (lat2 - lat1) * rad
+        const dLng = (lng2 - lng1) * rad
+
         const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2)
+            Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2)
+
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-        return R * c
-    },
-
-    toRad(deg) {
-        return deg * (Math.PI / 180)
-    },
-
-    // 逆地理编码
-    reverseGeocoding(lat, lng) {
-        // 这里可以调用腾讯地图API获取详细地址
-        // 简化处理：直接显示坐标
-        this.setData({
-            address: this.data.isInGeofence ? '医院范围内' : `距医院${this.data.distance}米`
-        })
+        return 6371000 * c  // 地球半径 * 弧度 = 米
     },
 
     // 加载今日数据
     loadTodayData() {
-        const today = this.formatDate(new Date())
+        // 开发模式使用模拟数据
+        if (app.globalData.devMode) {
+            this.loadMockData()
+            return
+        }
 
-        // 获取今日打卡记录
+        // 加载今日排班
+        const today = this.data.currentDate
         app.request({
             url: `/attendance/my_records/?date=${today}`,
             method: 'GET'
-        }).then(records => {
-            const punchIn = records.find(r => r.type === 'IN')
-            const punchOut = records.find(r => r.type === 'OUT')
-
-            this.setData({
-                todayRecords: records,
-                hasPunchedIn: !!punchIn,
-                hasPunchedOut: !!punchOut,
-                punchInTime: punchIn ? this.formatTime(punchIn.punch_time) : '',
-                punchOutTime: punchOut ? this.formatTime(punchOut.punch_time) : ''
-            })
+        }).then(data => {
+            this.setData({ punchRecords: data || [] })
         }).catch(err => {
             console.error('加载打卡记录失败:', err)
         })
-
-        // 获取今日排班
-        app.request({
-            url: `/rosters/calendar/?start_date=${today}&end_date=${today}&user_id=${app.globalData.userInfo?.id || ''}`,
-            method: 'GET'
-        }).then(data => {
-            if (data[today] && data[today].length > 0) {
-                this.setData({ todayRoster: data[today][0] })
-            }
-        }).catch(err => {
-            console.error('加载排班失败:', err)
-        })
     },
 
-    // 执行打卡
-    doPunch(type) {
-        if (this.data.loading) return
-
-        // 检查位置
-        if (!this.data.latitude || !this.data.longitude) {
-            wx.showToast({ title: '请先获取位置', icon: 'error' })
-            return
-        }
-
-        // 检查是否在围栏内
-        if (!this.data.isInGeofence) {
-            wx.showModal({
-                title: '提示',
-                content: `您当前距离医院${this.data.distance}米，超出打卡范围(${this.data.hospitalLocation.radius}米)，是否继续？`,
-                success: (res) => {
-                    if (res.confirm) {
-                        this.submitPunch(type)
-                    }
-                }
-            })
-            return
-        }
-
-        this.submitPunch(type)
-    },
-
-    // 提交打卡请求
-    submitPunch(type) {
-        this.setData({ loading: true })
-
-        app.request({
-            url: '/attendance/punch/',
-            method: 'POST',
-            data: {
-                type: type,
-                latitude: this.data.latitude,
-                longitude: this.data.longitude,
-                note: ''
-            }
-        }).then(res => {
-            wx.showToast({
-                title: type === 'IN' ? '上班打卡成功' : '下班打卡成功',
-                icon: 'success'
-            })
-            this.loadTodayData()
-        }).catch(err => {
-            console.error('打卡失败:', err)
-            wx.showToast({
-                title: err.message || '打卡失败',
-                icon: 'error'
-            })
-        }).finally(() => {
-            this.setData({ loading: false })
+    // 加载模拟数据（开发模式）
+    loadMockData() {
+        this.setData({
+            todayRoster: {
+                shift_name: '早班',
+                start_time: '08:00',
+                end_time: '16:00'
+            },
+            punchRecords: [
+                { id: 1, type: 'IN', time: '07:58:23', status: 'NORMAL' }
+            ]
         })
     },
 
@@ -240,24 +167,65 @@ Page({
         this.doPunch('OUT')
     },
 
+    // 执行打卡
+    doPunch(type) {
+        if (!this.data.inGeofence && !app.globalData.devMode) {
+            wx.showModal({
+                title: '位置异常',
+                content: `您当前距离医院${this.data.distance}米，超出打卡范围。确定要打卡吗？`,
+                success: (res) => {
+                    if (res.confirm) {
+                        this.submitPunch(type)
+                    }
+                }
+            })
+        } else {
+            this.submitPunch(type)
+        }
+    },
+
+    // 提交打卡
+    submitPunch(type) {
+        // 开发模式模拟打卡
+        if (app.globalData.devMode) {
+            wx.showToast({ title: type === 'IN' ? '上班打卡成功' : '下班打卡成功', icon: 'success' })
+            const now = new Date()
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`
+            const newRecord = {
+                id: Date.now(),
+                type: type,
+                time: timeStr,
+                status: 'NORMAL'
+            }
+            this.setData({
+                punchRecords: [...this.data.punchRecords, newRecord]
+            })
+            return
+        }
+
+        app.request({
+            url: '/attendance/punch/',
+            method: 'POST',
+            data: {
+                type: type,
+                latitude: this.data.latitude,
+                longitude: this.data.longitude
+            }
+        }).then(res => {
+            wx.showToast({
+                title: type === 'IN' ? '上班打卡成功' : '下班打卡成功',
+                icon: 'success'
+            })
+            this.loadTodayData()
+        }).catch(err => {
+            console.error('打卡失败:', err)
+            wx.showToast({ title: err.message || '打卡失败', icon: 'error' })
+        })
+    },
+
     // 刷新位置
     refreshLocation() {
         this.getLocation()
-    },
-
-    // 格式化日期
-    formatDate(date) {
-        const year = date.getFullYear()
-        const month = String(date.getMonth() + 1).padStart(2, '0')
-        const day = String(date.getDate()).padStart(2, '0')
-        return `${year}-${month}-${day}`
-    },
-
-    // 格式化时间显示
-    formatTime(dateTimeStr) {
-        if (!dateTimeStr) return ''
-        const date = new Date(dateTimeStr)
-        return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
     },
 
     // 下拉刷新

@@ -57,6 +57,25 @@ Page({
 
     // 加载统计数据
     loadStats() {
+        // 开发模式使用模拟数据
+        if (app.globalData.devMode) {
+            this.setData({
+                stats: {
+                    thisMonth: {
+                        workDays: 22,
+                        overtimeHours: 16,
+                        overtimePay: 480
+                    },
+                    thisQuarter: {
+                        workDays: 65,
+                        overtimeHours: 48,
+                        overtimePay: 1440
+                    }
+                }
+            })
+            return
+        }
+
         this.loadMonthStats()
         this.loadQuarterStats()
     },
@@ -147,8 +166,10 @@ Page({
                     app.globalData.token = ''
                     app.globalData.userInfo = null
 
-                    // 重新登录
-                    app.login()
+                    // 开发模式重新设置模拟用户
+                    if (app.globalData.devMode) {
+                        app.setMockUser()
+                    }
 
                     wx.showToast({ title: '已退出登录', icon: 'success' })
                 }

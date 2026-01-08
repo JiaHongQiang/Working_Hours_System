@@ -32,14 +32,8 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     ordering = ['admin_dept', 'emp_code']
     
     def get_queryset(self):
-        """默认只返回在职员工，可通过参数查询全部"""
-        queryset = super().get_queryset()
-        # 如果没有明确指定work_status，默认只返回在职员工
-        if 'work_status' not in self.request.query_params:
-            queryset = queryset.filter(work_status=1)
-        # 否则，如果传了work_status（包括空字符串），交由FilterBackend处理
-        # 注意：如果传了空字符串，DjangoFilterBackend会自动忽略，从而实现查询全部
-        return queryset
+        """返回所有员工，可通过参数按work_status筛选"""
+        return super().get_queryset()
     
     def get_serializer_class(self):
         if self.action == 'list':

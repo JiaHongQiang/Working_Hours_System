@@ -16,6 +16,7 @@ Page({
         inGeofence: false,      // 是否在地理围栏内
         distance: 0,            // 距离医院的距离
         locationLoading: false,
+        locationFailed: false,
 
         // 今日排班
         todayRoster: null,
@@ -23,10 +24,12 @@ Page({
         // 打卡记录
         punchRecords: [],
 
-        // 地理围栏配置
-        hospitalLat: 39.9042,  // 医院纬度（从后端获取，这里用默认值）
+        // 地理围栏配置（从后端获取）
+        hospitalName: '医院',
+        hospitalLat: 39.9042,  // 医院纬度（默认值，会被后端配置覆盖）
         hospitalLng: 116.4074, // 医院经度
         geofenceRadius: 200,   // 围栏半径（米）
+        configLoaded: false
     },
 
     onLoad() {
@@ -36,7 +39,10 @@ Page({
             this.updateTime()
         }, 1000)
 
-        this.getLocation()
+        // 先获取打卡配置，再获取位置
+        this.loadPunchConfig().then(() => {
+            this.getLocation()
+        })
         this.loadTodayData()
     },
 
@@ -48,6 +54,32 @@ Page({
 
     onShow() {
         this.loadTodayData()
+    },
+
+    // 加载打卡配置（从后端获取）
+    loadPunchConfig() {
+        return new Promise((resolve) => {
+            app.request({
+                url: '/config/punch_config/',
+                method: 'GET',
+                skipAuth: true  // 公开接口，无需认证
+            }).then(config => {
+                console.log('打卡配置:', config)
+                this.setData({
+                    hospitalName: config.hospital_name || '医院',
+                    hospitalLat: config.hospital_latitude || 39.9042,
+                    hospitalLng: config.hospital_longitude || 116.4074,
+                    geofenceRadius: config.geofence_radius || 200,
+                    configLoaded: true
+                })
+                resolve()
+            }).catch(err => {
+                console.error('加载打卡配置失败:', err)
+                // 使用默认配置
+                this.setData({ configLoaded: true })
+                resolve()
+            })
+        })
     },
 
     // 更新当前时间显示
@@ -68,7 +100,7 @@ Page({
 
     // 获取当前位置
     getLocation() {
-        this.setData({ locationLoading: true })
+        this.setData({ locationLoading: true, locationFailed: false })
 
         wx.getLocation({
             type: 'gcj02',
@@ -83,25 +115,29 @@ Page({
                     distance: Math.round(distance),
                     inGeofence,
                     locationName: inGeofence ? '医院范围内' : `距离医院 ${Math.round(distance)}米`,
-                    locationLoading: false
+                    locationLoading: false,
+                    locationFailed: false
                 })
             },
             fail: (err) => {
                 console.error('获取位置失败:', err)
-                // 开发模式：使用模拟位置
-                if (app.globalData.devMode) {
-                    this.setData({
-                        latitude: 39.9042,
-                        longitude: 116.4074,
-                        distance: 50,
-                        inGeofence: true,
-                        locationName: '医院范围内（模拟）',
-                        locationLoading: false
-                    })
-                } else {
-                    this.setData({ locationLoading: false })
-                    wx.showToast({ title: '获取位置失败', icon: 'none' })
-                }
+                this.setData({
+                    locationLoading: false,
+                    locationFailed: true,
+                    locationName: '获取位置失败，请点击刷新',
+                    inGeofence: false
+                })
+
+                // 提示用户授权
+                wx.showModal({
+                    title: '定位失败',
+                    content: '无法获取您的位置，请确保已授权位置权限。是否前往设置？',
+                    success: (res) => {
+                        if (res.confirm) {
+                            wx.openSetting()
+                        }
+                    }
+                })
             }
         })
     },
@@ -169,10 +205,20 @@ Page({
 
     // 执行打卡
     doPunch(type) {
-        if (!this.data.inGeofence && !app.globalData.devMode) {
+        // 检查是否已获取位置
+        if (this.data.locationFailed || (this.data.latitude === 0 && this.data.longitude === 0)) {
+            wx.showModal({
+                title: '无法打卡',
+                content: '未能获取您的位置，请先点击"刷新位置"按钮获取定位',
+                showCancel: false
+            })
+            return
+        }
+
+        if (!this.data.inGeofence) {
             wx.showModal({
                 title: '位置异常',
-                content: `您当前距离医院${this.data.distance}米，超出打卡范围。确定要打卡吗？`,
+                content: `您当前距离医院${this.data.distance}米，超出打卡范围（${this.data.geofenceRadius}米）。确定要打卡吗？`,
                 success: (res) => {
                     if (res.confirm) {
                         this.submitPunch(type)

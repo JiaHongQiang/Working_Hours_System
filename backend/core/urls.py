@@ -11,6 +11,7 @@ from core.views import (
     AttendanceLogViewSet,
     OvertimeRecordViewSet,
 )
+from core.views.config import SystemConfigViewSet
 
 router = DefaultRouter()
 router.register('departments', DepartmentViewSet, basename='department')
@@ -19,6 +20,7 @@ router.register('shifts', ShiftDefinitionViewSet, basename='shift')
 router.register('rosters', RosterViewSet, basename='roster')
 router.register('attendance', AttendanceLogViewSet, basename='attendance')
 router.register('overtime', OvertimeRecordViewSet, basename='overtime')
+router.register('config', SystemConfigViewSet, basename='config')
 
 urlpatterns = [
     path('', include(router.urls)),

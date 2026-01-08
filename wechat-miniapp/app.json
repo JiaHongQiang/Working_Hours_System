@@ -70,6 +70,9 @@
             "desc": "用于打卡位置验证"
         }
     },
+    "requiredPrivateInfos": [
+        "getLocation"
+    ],
     "requiredBackgroundModes": [
         "location"
     ],

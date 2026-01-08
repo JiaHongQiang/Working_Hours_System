@@ -1,0 +1,80 @@
+/* pages/bind/bind.wxss */
+/* 账号绑定页面样式 */
+
+.container {
+    padding: 40rpx;
+    background: linear-gradient(180deg, #409EFF 0%, #f5f5f5 50%);
+    min-height: 100vh;
+}
+
+/* 头部 */
+.header {
+    text-align: center;
+    padding: 80rpx 0 60rpx;
+}
+
+.logo {
+    font-size: 100rpx;
+    margin-bottom: 20rpx;
+}
+
+.title {
+    font-size: 44rpx;
+    font-weight: bold;
+    color: #fff;
+    display: block;
+}
+
+.subtitle {
+    font-size: 28rpx;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: 16rpx;
+    display: block;
+}
+
+/* 表单区域 */
+.form-section {
+    margin-top: 40rpx;
+}
+
+/* 提示信息 */
+.tips {
+    margin-top: 40rpx;
+    padding: 24rpx;
+    background: #E6F7FF;
+    border-radius: 12rpx;
+}
+
+.tip-item {
+    display: flex;
+    align-items: center;
+    gap: 12rpx;
+    font-size: 26rpx;
+    color: #409EFF;
+    margin-bottom: 12rpx;
+}
+
+.tip-item:last-child {
+    margin-bottom: 0;
+}
+
+.tip-icon {
+    font-size: 28rpx;
+}
+
+/* 操作按钮 */
+.action-section {
+    margin-top: 60rpx;
+}
+
+.back-button {
+    margin-top: 20rpx !important;
+}
+
+/* 底部 */
+.footer {
+    text-align: center;
+    padding: 60rpx 0;
+    color: #999;
+    font-size: 24rpx;
+}

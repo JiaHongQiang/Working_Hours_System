@@ -3,7 +3,7 @@ App({
     globalData: {
         userInfo: null,
         token: '',
-        apiBase: 'http://localhost:8000/api'  // 本地开发环境，生产环境需修改
+        apiBase: 'http://192.168.2.213:8000/api'  // 远程服务器地址
     },
 
     onLaunch() {

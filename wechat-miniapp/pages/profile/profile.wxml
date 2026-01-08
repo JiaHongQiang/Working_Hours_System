@@ -1,0 +1,99 @@
+<!--pages/profile/profile.wxml-->
+<!-- 个人中心页面 -->
+<view class="container">
+    <!-- 用户卡片 -->
+    <view class="user-card">
+        <view class="user-header">
+            <view class="avatar">
+                <text>{{ userInfo.full_name ? userInfo.full_name.charAt(0) : '?' }}</text>
+            </view>
+            <view class="user-info">
+                <text class="user-name">{{ userInfo.full_name || '未登录' }}</text>
+                <text class="user-code">工号：{{ userInfo.emp_code || '--' }}</text>
+                <view class="user-tags">
+                    <text class="tag dept">{{ userInfo.admin_dept_name || userInfo.department_name || '未分配' }}</text>
+                    <text class="tag category" wx:if="{{ userInfo.staff_category_display }}">
+                        {{ userInfo.staff_category_display }}
+                    </text>
+                </view>
+            </view>
+        </view>
+        <view class="user-meta" wx:if="{{ userInfo.job_title }}">
+            <text class="job-title">{{ userInfo.job_title }}</text>
+        </view>
+    </view>
+
+    <!-- 统计区域 -->
+    <view class="stats-section">
+        <view class="stats-header">
+            <text class="section-title">工时统计</text>
+            <view class="period-switch">
+                <text 
+                    class="period-item {{ statsPeriod === 'month' ? 'active' : '' }}"
+                    data-period="month"
+                    bindtap="switchStatsPeriod"
+                >本月</text>
+                <text 
+                    class="period-item {{ statsPeriod === 'quarter' ? 'active' : '' }}"
+                    data-period="quarter"
+                    bindtap="switchStatsPeriod"
+                >本季</text>
+            </view>
+        </view>
+        
+        <view class="stats-grid">
+            <view class="stat-item">
+                <text class="stat-value">
+                    {{ statsPeriod === 'month' ? stats.thisMonth.workDays : stats.thisQuarter.workDays }}
+                </text>
+                <text class="stat-label">出勤天数</text>
+            </view>
+            <view class="stat-item">
+                <text class="stat-value">
+                    {{ statsPeriod === 'month' ? stats.thisMonth.overtimeHours : stats.thisQuarter.overtimeHours }}
+                </text>
+                <text class="stat-label">加班小时</text>
+            </view>
+            <view class="stat-item">
+                <text class="stat-value highlight">
+                    ¥{{ statsPeriod === 'month' ? stats.thisMonth.overtimePay : stats.thisQuarter.overtimePay }}
+                </text>
+                <text class="stat-label">加班费</text>
+            </view>
+        </view>
+    </view>
+
+    <!-- 功能菜单 -->
+    <view class="menu-section">
+        <view class="section-title">功能菜单</view>
+        <van-cell-group inset>
+            <van-cell 
+                wx:for="{{ menuItems }}" 
+                wx:key="title"
+                title="{{ item.title }}"
+                icon="{{ item.icon }}"
+                is-link="{{ !item.disabled }}"
+                clickable="{{ !item.disabled }}"
+                data-item="{{ item }}"
+                bindtap="onMenuTap"
+            />
+        </van-cell-group>
+    </view>
+
+    <!-- 退出登录 -->
+    <view class="logout-section">
+        <van-button 
+            type="default" 
+            block 
+            plain
+            bindtap="logout"
+        >
+            退出登录
+        </van-button>
+    </view>
+
+    <!-- 版本信息 -->
+    <view class="version-info">
+        <text>医院工时系统 v1.0.0</text>
+    </view>
+</view>

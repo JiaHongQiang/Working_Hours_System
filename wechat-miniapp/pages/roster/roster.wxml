@@ -1,0 +1,82 @@
+<!--pages/roster/roster.wxml-->
+<!-- 排班日历页面 -->
+<view class="container">
+    <!-- 页面标题 -->
+    <view class="page-header">
+        <text class="title">我的排班</text>
+        <text class="subtitle">点击日期查看班次详情</text>
+    </view>
+
+    <!-- 日历组件 -->
+    <view class="calendar-wrapper">
+        <van-calendar
+            show="{{ showCalendar }}"
+            type="single"
+            poppable="{{ false }}"
+            show-confirm="{{ false }}"
+            default-date="{{ currentDate }}"
+            min-date="{{ minDate }}"
+            max-date="{{ maxDate }}"
+            bind:select="onSelectDate"
+            row-height="60"
+            color="#409EFF"
+        />
+    </view>
+
+    <!-- 班次图例 -->
+    <view class="legend-bar">
+        <view class="legend-item">
+            <view class="legend-dot" style="background: #67C23A;"></view>
+            <text>早班</text>
+        </view>
+        <view class="legend-item">
+            <view class="legend-dot" style="background: #E6A23C;"></view>
+            <text>中班</text>
+        </view>
+        <view class="legend-item">
+            <view class="legend-dot" style="background: #F56C6C;"></view>
+            <text>夜班</text>
+        </view>
+    </view>
+
+    <!-- 选中日期详情 -->
+    <view class="detail-card" wx:if="{{ selectedDate }}">
+        <view class="detail-header">
+            <text class="detail-date">{{ selectedDate }}</text>
+            <text class="detail-weekday">{{ selectedRoster ? '已排班' : '休息日' }}</text>
+        </view>
+        
+        <view class="detail-body" wx:if="{{ selectedRoster }}">
+            <view class="shift-badge" style="background: {{ shiftColors[selectedRoster.shift_name] || shiftColors.default }};">
+                {{ selectedRoster.shift_name }}
+            </view>
+            <view class="shift-time">
+                <text class="time-label">上班时间</text>
+                <text class="time-value">{{ selectedRoster.shift_start_time || '--:--' }}</text>
+            </view>
+            <view class="shift-time">
+                <text class="time-label">下班时间</text>
+                <text class="time-value">{{ selectedRoster.shift_end_time || '--:--' }}</text>
+            </view>
+            <view class="cross-day-tag" wx:if="{{ selectedRoster.is_cross_day }}">
+                <text>跨夜班</text>
+            </view>
+        </view>
+
+        <view class="detail-empty" wx:else>
+            <van-empty description="当日无排班" image="search" />
+        </view>
+    </view>
+
+    <!-- 快捷操作 -->
+    <view class="action-bar" wx:if="{{ selectedRoster }}">
+        <van-button type="primary" block bind:click="goToPunch">
+            去打卡
+        </van-button>
+    </view>
+
+    <!-- 加载状态 -->
+    <van-loading wx:if="{{ loading }}" class="loading-overlay" size="36px" vertical>
+        加载中...
+    </van-loading>
+</view>

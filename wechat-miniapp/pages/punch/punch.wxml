@@ -1,0 +1,107 @@
+<!--pages/punch/punch.wxml-->
+<!-- 打卡页面 -->
+<view class="container">
+    <!-- 时间显示区域 -->
+    <view class="time-section">
+        <text class="current-time">{{ currentTime }}</text>
+        <text class="current-date">{{ currentDate }}</text>
+    </view>
+
+    <!-- 今日排班信息 -->
+    <view class="roster-info" wx:if="{{ todayRoster }}">
+        <text class="roster-label">今日班次：</text>
+        <text class="roster-value">{{ todayRoster.shift_name }}</text>
+        <text class="roster-time">（{{ todayRoster.shift_start_time }} - {{ todayRoster.shift_end_time }}）</text>
+    </view>
+    <view class="roster-info no-roster" wx:else>
+        <text>今日无排班</text>
+    </view>
+
+    <!-- 位置信息 -->
+    <view class="location-section">
+        <view class="location-status {{ isInGeofence ? 'in-range' : 'out-range' }}">
+            <text class="location-icon">📍</text>
+            <text class="location-text">{{ address }}</text>
+            <text class="refresh-btn" bindtap="refreshLocation">刷新</text>
+        </view>
+        <view class="distance-info" wx:if="{{ distance > 0 }}">
+            <text wx:if="{{ isInGeofence }}" class="in-range-text">✓ 在打卡范围内</text>
+            <text wx:else class="out-range-text">⚠ 距离医院 {{ distance }} 米</text>
+        </view>
+        <view class="location-error" wx:if="{{ locationError }}">
+            <van-button size="small" type="warning" bindtap="refreshLocation">
+                重新获取位置
+            </van-button>
+        </view>
+    </view>
+
+    <!-- 打卡按钮区域 -->
+    <view class="punch-section">
+        <!-- 上班打卡 -->
+        <view class="punch-card">
+            <view class="punch-header">
+                <text class="punch-title">上班打卡</text>
+                <text class="punch-status {{ hasPunchedIn ? 'done' : '' }}">
+                    {{ hasPunchedIn ? '已打卡' : '未打卡' }}
+                </text>
+            </view>
+            <view class="punch-time" wx:if="{{ punchInTime }}">
+                <text>打卡时间：{{ punchInTime }}</text>
+            </view>
+            <van-button 
+                type="primary" 
+                size="large"
+                round
+                disabled="{{ hasPunchedIn || loading || locationError }}"
+                loading="{{ loading }}"
+                bindtap="punchIn"
+                custom-class="punch-button in-button"
+            >
+                {{ hasPunchedIn ? '已完成上班打卡' : '上班打卡' }}
+            </van-button>
+        </view>
+
+        <!-- 下班打卡 -->
+        <view class="punch-card">
+            <view class="punch-header">
+                <text class="punch-title">下班打卡</text>
+                <text class="punch-status {{ hasPunchedOut ? 'done' : '' }}">
+                    {{ hasPunchedOut ? '已打卡' : '未打卡' }}
+                </text>
+            </view>
+            <view class="punch-time" wx:if="{{ punchOutTime }}">
+                <text>打卡时间：{{ punchOutTime }}</text>
+            </view>
+            <van-button 
+                type="info" 
+                size="large"
+                round
+                disabled="{{ !hasPunchedIn || hasPunchedOut || loading || locationError }}"
+                loading="{{ loading }}"
+                bindtap="punchOut"
+                custom-class="punch-button out-button"
+            >
+                {{ hasPunchedOut ? '已完成下班打卡' : '下班打卡' }}
+            </van-button>
+        </view>
+    </view>
+
+    <!-- 今日打卡记录 -->
+    <view class="records-section" wx:if="{{ todayRecords.length > 0 }}">
+        <view class="section-title">今日打卡记录</view>
+        <view class="record-list">
+            <view class="record-item" wx:for="{{ todayRecords }}" wx:key="id">
+                <view class="record-type {{ item.type === 'IN' ? 'type-in' : 'type-out' }}">
+                    {{ item.type === 'IN' ? '上班' : '下班' }}
+                </view>
+                <view class="record-info">
+                    <text class="record-time">{{ item.punch_time }}</text>
+                    <text class="record-source">{{ item.source === 'WECHAT' ? '小程序' : '其他' }}</text>
+                </view>
+                <view class="record-status {{ item.is_in_geofence ? 'normal' : 'abnormal' }}">
+                    {{ item.is_in_geofence ? '正常' : '异常' }}
+                </view>
+            </view>
+        </view>
+    </view>
+</view>

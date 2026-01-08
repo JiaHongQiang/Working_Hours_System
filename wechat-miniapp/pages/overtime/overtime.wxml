@@ -1,0 +1,174 @@
+<!--pages/overtime/overtime.wxml-->
+<!-- 加班页面 -->
+<view class="container">
+    <!-- Tab切换 -->
+    <view class="tab-bar">
+        <view 
+            class="tab-item {{ activeTab === 'apply' ? 'active' : '' }}" 
+            data-tab="apply"
+            bindtap="switchTab"
+        >
+            <text>加班申报</text>
+        </view>
+        <view 
+            class="tab-item {{ activeTab === 'records' ? 'active' : '' }}" 
+            data-tab="records"
+            bindtap="switchTab"
+        >
+            <text>我的记录</text>
+        </view>
+    </view>
+
+    <!-- 申报表单 -->
+    <view class="apply-section" wx:if="{{ activeTab === 'apply' }}">
+        <van-cell-group inset>
+            <!-- 日期选择 -->
+            <van-cell 
+                title="加班日期" 
+                value="{{ form.workDate || '请选择' }}"
+                is-link
+                bindtap="showDateSelector"
+            />
+            
+            <!-- 开始时间 -->
+            <van-cell 
+                title="开始时间" 
+                value="{{ form.actualStart || '请选择' }}"
+                is-link
+                bindtap="showStartTimeSelector"
+            />
+            
+            <!-- 结束时间 -->
+            <van-cell 
+                title="结束时间" 
+                value="{{ form.actualEnd || '请选择' }}"
+                is-link
+                bindtap="showEndTimeSelector"
+            />
+        </van-cell-group>
+
+        <!-- 加班原因 -->
+        <view class="reason-section">
+            <text class="reason-label">加班原因</text>
+            <textarea 
+                class="reason-input"
+                placeholder="请详细描述加班原因..."
+                value="{{ form.reason }}"
+                bindinput="onReasonInput"
+                maxlength="500"
+            />
+            <text class="char-count">{{ form.reason.length || 0 }}/500</text>
+        </view>
+
+        <!-- 提交按钮 -->
+        <view class="submit-section">
+            <van-button 
+                type="primary" 
+                block 
+                round
+                loading="{{ submitting }}"
+                disabled="{{ submitting }}"
+                bindtap="submitApply"
+            >
+                提交申报
+            </van-button>
+        </view>
+
+        <!-- 提示信息 -->
+        <view class="tips-section">
+            <view class="tip-item">
+                <text class="tip-icon">💡</text>
+                <text>加班时长会按0-4-8阶梯制规整</text>
+            </view>
+            <view class="tip-item">
+                <text class="tip-icon">📝</text>
+                <text>提交后需等待主管审批</text>
+            </view>
+        </view>
+    </view>
+
+    <!-- 记录列表 -->
+    <view class="records-section" wx:if="{{ activeTab === 'records' }}">
+        <van-loading wx:if="{{ loading }}" size="36px" vertical>加载中...</van-loading>
+        
+        <view wx:elif="{{ records.length === 0 }}" class="empty-state">
+            <van-empty description="暂无加班记录" />
+        </view>
+
+        <view wx:else class="record-list">
+            <view 
+                class="record-card" 
+                wx:for="{{ records }}" 
+                wx:key="id"
+            >
+                <view class="card-header">
+                    <text class="work-date">{{ item.work_date }}</text>
+                    <text class="status-tag {{ item.status === 'PENDING' ? 'status-pending' : item.status === 'APPROVED' ? 'status-approved' : 'status-rejected' }}">
+                        {{ item.status === 'PENDING' ? '待审批' : item.status === 'APPROVED' ? '已通过' : '已驳回' }}
+                    </text>
+                </view>
+                
+                <view class="card-body">
+                    <view class="info-row">
+                        <text class="info-label">工作时间</text>
+                        <text class="info-value">{{ item.actual_start }} - {{ item.actual_end }}</text>
+                    </view>
+                    <view class="info-row">
+                        <text class="info-label">原始时长</text>
+                        <text class="info-value">{{ item.raw_ot_duration }}小时</text>
+                    </view>
+                    <view class="info-row">
+                        <text class="info-label">核定时长</text>
+                        <text class="info-value highlight">{{ item.approved_ot_duration }}小时</text>
+                    </view>
+                    <view class="info-row">
+                        <text class="info-label">薪资倍率</text>
+                        <text class="info-value">{{ item.multiplier }}x</text>
+                    </view>
+                    <view class="info-row" wx:if="{{ item.status === 'APPROVED' }}">
+                        <text class="info-label">加班费</text>
+                        <text class="info-value highlight-money">¥{{ item.final_pay_amount }}</text>
+                    </view>
+                </view>
+
+                <view class="card-footer" wx:if="{{ item.reason }}">
+                    <text class="reason-text">原因：{{ item.reason }}</text>
+                </view>
+
+                <view class="card-footer reject-reason" wx:if="{{ item.status === 'REJECTED' && item.reject_reason }}">
+                    <text class="reject-text">驳回原因：{{ item.reject_reason }}</text>
+                </view>
+            </view>
+        </view>
+    </view>
+
+    <!-- 日期选择器弹窗 -->
+    <van-calendar 
+        show="{{ showDatePicker }}" 
+        bind:close="onCloseDatePicker"
+        bind:confirm="onConfirmDate"
+        min-date="{{ minDate }}"
+        max-date="{{ maxDate }}"
+        color="#409EFF"
+    />
+
+    <!-- 时间选择器 - 开始时间 -->
+    <van-popup show="{{ showStartTimePicker }}" position="bottom">
+        <van-datetime-picker
+            type="time"
+            value="{{ form.actualStart }}"
+            bind:confirm="onConfirmStartTime"
+            bind:cancel="onCloseStartTimePicker"
+        />
+    </van-popup>
+
+    <!-- 时间选择器 - 结束时间 -->
+    <van-popup show="{{ showEndTimePicker }}" position="bottom">
+        <van-datetime-picker
+            type="time"
+            value="{{ form.actualEnd }}"
+            bind:confirm="onConfirmEndTime"
+            bind:cancel="onCloseEndTimePicker"
+        />
+    </van-popup>
+</view>

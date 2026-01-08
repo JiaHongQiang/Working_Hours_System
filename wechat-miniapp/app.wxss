@@ -1,5 +1,5 @@
 /* 全局样式 */
-@import '@vant/weapp/common/index.wxss';
+/* Vant组件样式已在各组件中自动引入，无需全局导入 */
 
 page {
   background-color: #f5f5f5;

@@ -46,6 +46,20 @@ const routes = [
                 ]
             },
             {
+                path: 'shift',
+                component: Layout,
+                redirect: '/shift/index',
+                meta: { title: '排班管理' },
+                children: [
+                    {
+                        path: 'index',
+                        name: 'ShiftDefinition',
+                        component: () => import('@/views/Shift/Index.vue'),
+                        meta: { title: '班次定义' }
+                    }
+                ]
+            },
+            {
                 path: 'roster',
                 name: 'Roster',
                 component: () => import('@/views/Roster/Index.vue'),

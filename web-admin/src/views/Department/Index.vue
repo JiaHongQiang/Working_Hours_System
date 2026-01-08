@@ -18,9 +18,15 @@
             <el-tag :type="getDeptTypeTag(row.dept_type)">{{ row.dept_type_display }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="manager_name" label="负责人" min-width="120" align="center">
+        <!-- 科室管理显示负责人，病区管理显示所属科室 -->
+        <el-table-column v-if="type === 'ALL'" prop="manager_name" label="负责人" min-width="120" align="center">
              <template #default="{ row }">
                 {{ row.manager_name || '-' }}
+             </template>
+        </el-table-column>
+        <el-table-column v-else prop="parent_name" label="所属科室" min-width="120" align="center">
+             <template #default="{ row }">
+                {{ row.parent_name || '-' }}
              </template>
         </el-table-column>
         <el-table-column prop="is_active" label="状态" width="100" align="center">
@@ -72,6 +78,16 @@
             style="width: 100%"
           />
         </el-form-item>
+        <el-form-item label="负责人">
+          <el-select v-model="formData.manager" placeholder="请选择负责人" clearable filterable style="width: 100%">
+            <el-option
+              v-for="emp in employeeList"
+              :key="emp.id"
+              :label="`${emp.full_name} (${emp.emp_code})`"
+              :value="emp.id"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="状态">
           <el-switch v-model="formData.is_active" active-text="启用" inactive-text="禁用" />
         </el-form-item>
@@ -104,6 +120,7 @@ const isEdit = ref(false)
 const formRef = ref(null)
 const tableData = ref([])
 const deptTree = ref([]) // 用于上级选择
+const employeeList = ref([]) // 员工列表
 
 const title = computed(() => props.type === 'WARD' ? '病区管理' : '科室管理')
 const isWardOnly = computed(() => props.type === 'WARD')
@@ -114,6 +131,7 @@ const formData = reactive({
   dept_code: '',
   dept_type: '',
   parent: null,
+  manager: null,
   is_active: true
 })
 
@@ -128,6 +146,18 @@ const dialogTitle = computed(() => (isEdit.value ? '编辑' : '新增') + title.
 const getDeptTypeTag = (type) => {
     const map = { 'ADMIN': 'info', 'CLINICAL': 'primary', 'WARD': 'success', 'TECH': 'warning' }
     return map[type]
+}
+
+// 递归过滤掉树中的病区节点
+const filterWardFromTree = (tree) => {
+    if (!tree || !Array.isArray(tree)) return []
+    
+    return tree
+        .filter(node => node.dept_type !== 'WARD')  // 过滤掉病区
+        .map(node => ({
+            ...node,
+            children: node.children ? filterWardFromTree(node.children) : []
+        }))
 }
 
 // 加载数据
@@ -151,13 +181,32 @@ const loadData = async () => {
     // 如果是编辑上级，需要完整的树
     if (!deptTree.value.length) {
         const treeRes = await request.get('/departments/tree/')
-        deptTree.value = treeRes.data
+        let treeData = treeRes.data
+        
+        // 如果是病区管理，上级只能选科室，递归过滤掉病区
+        if (props.type === 'WARD') {
+            treeData = filterWardFromTree(treeData)
+        }
+        
+        deptTree.value = treeData
     }
   } catch (err) {
     console.error(err)
     ElMessage.error('加载失败')
   } finally {
     loading.value = false
+  }
+}
+
+// 加载员工列表（供负责人选择）
+const loadEmployees = async () => {
+  try {
+    const res = await request.get('/users/', {
+      params: { work_status: 1, page_size: 1000 }  // 只加载在职员工
+    })
+    employeeList.value = res.data.results || res.data
+  } catch (err) {
+    console.error('加载员工列表失败', err)
   }
 }
 
@@ -168,6 +217,7 @@ const handleAdd = () => {
   formData.dept_code = ''
   formData.dept_type = isWardOnly.value ? 'WARD' : 'ADMIN'
   formData.parent = null
+  formData.manager = null
   formData.is_active = true
   dialogVisible.value = true
 }
@@ -240,6 +290,7 @@ watch(() => props.type, () => {
 
 onMounted(() => {
     loadData()
+    loadEmployees()
 })
 </script>
 

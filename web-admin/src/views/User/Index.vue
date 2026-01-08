@@ -319,6 +319,7 @@ import {
   Search, Refresh, Plus, Download, Edit, Delete, Key 
 } from '@element-plus/icons-vue'
 import request from '@/utils/request'
+import * as XLSX from 'xlsx'
 
 // ========== 数据定义 ==========
 const loading = ref(false)
@@ -597,8 +598,61 @@ const handleResetPassword = (row) => {
 }
 
 // 导出
-const handleExport = () => {
-  ElMessage.info('导出功能开发中...')
+const handleExport = async () => {
+  try {
+    ElMessage.info('正在导出数据，请稍候...')
+    
+    // 获取所有筛选后的数据（不分页）
+    const params = {
+      page_size: 10000,  // 获取足够多的数据
+      search: filterForm.keyword || undefined,
+      admin_dept: filterForm.admin_dept || undefined,
+      staff_category: filterForm.staff_category || undefined,
+      emp_status: filterForm.emp_status || undefined,
+      work_status: filterForm.work_status || undefined
+    }
+    
+    const res = await request.get('/users/', { params })
+    const exportData = res.data.results || res.data
+    
+    if (!exportData || exportData.length === 0) {
+      ElMessage.warning('没有数据可导出')
+      return
+    }
+    
+    // 准备导出的数据格式
+    const excelData = exportData.map(item => ({
+      '工号': item.emp_code,
+      '姓名': item.full_name,
+      '行政科室': item.admin_dept_name || '-',
+      '排班病区': item.scheduling_ward_name || '-',
+      '人员类别': item.staff_category_display,
+      '用工性质': item.emp_status_display,
+      '职称': item.job_title || '-',
+      '参与排班': item.is_scheduling_required ? '是' : '否',
+      '基础时薪': item.base_hourly_rate || 0,
+      '手机号': item.phone || '-',
+      '入职日期': item.hire_date || '-',
+      '人员状态': item.work_status === 1 ? '在职' : '离职'
+    }))
+    
+    // 创建工作簿和工作表
+    const worksheet = XLSX.utils.json_to_sheet(excelData)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, '员工列表')
+    
+    // 生成文件名（带时间戳）
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-')
+    const filename = `员工数据_${timestamp}.xlsx`
+    
+    // 导出文件
+    XLSX.writeFile(workbook, filename)
+    
+    ElMessage.success(`成功导出 ${exportData.length} 条数据`)
+  } catch (error) {
+    console.error('导出失败', error)
+    ElMessage.error('导出失败，请重试')
+  }
 }
 
 // ========== 生命周期 ==========

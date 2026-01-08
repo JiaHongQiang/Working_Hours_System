@@ -155,10 +155,8 @@ SIMPLE_JWT = {
 }
 
 # CORS配置
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Vite开发服务器
-    "http://localhost:3000",
-]
+cors_origins = os.getenv('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3000')
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins.split(',') if origin.strip()]
 
 CORS_ALLOW_CREDENTIALS = True
 

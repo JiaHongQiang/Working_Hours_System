@@ -7,6 +7,7 @@ from .shift import ShiftDefinition
 from .roster import Roster
 from .attendance import AttendanceLog
 from .overtime import OvertimeRecord
+from .system_config import SystemConfig
 
 __all__ = [
     'Department',
@@ -16,4 +17,5 @@ __all__ = [
     'Roster',
     'AttendanceLog',
     'OvertimeRecord',
+    'SystemConfig',
 ]

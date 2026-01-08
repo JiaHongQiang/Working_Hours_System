@@ -11,7 +11,7 @@
         <div class="logo-box">
           <el-icon :size="40" color="#fff"><TrendCharts /></el-icon>
         </div>
-        <h1>医院工时统计系统</h1>
+        <h1>{{ systemConfig.system_name }}</h1>
         <p class="subtitle">Efficient • Smart • Professional</p>
       </div>
 
@@ -50,7 +50,7 @@
     </div>
     
     <div class="footer-copyright">
-      © {{ new Date().getFullYear() }} Hospital Working Hours System. All Rights Reserved.
+      © {{ new Date().getFullYear() }} {{ systemConfig.system_name_en }}. All Rights Reserved.
     </div>
   </div>
 </template>
@@ -61,12 +61,14 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { User, Lock, ArrowRight, TrendCharts } from '@element-plus/icons-vue'
+import { getSystemConfig } from '@/utils/systemConfig'
 import axios from 'axios'
 
 const router = useRouter()
 const userStore = useUserStore()
 const formRef = ref()
 const loading = ref(false)
+const systemConfig = getSystemConfig()
 
 const loginForm = reactive({
   username: '',

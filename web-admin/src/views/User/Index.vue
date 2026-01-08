@@ -35,14 +35,12 @@
             <el-option label="合同制" value="CONTRACT" />
             <el-option label="实习生" value="INTERN" />
             <el-option label="规培生" value="RESIDENT" />
-            <el-option label="规培生" value="RESIDENT" />
           </el-select>
         </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="filterForm.search_work_status" placeholder="请选择" style="width: 120px">
-             <el-option label="全部" value="" />
-             <el-option label="在职" :value="1" />
-             <el-option label="离职" :value="0" />
+        <el-form-item label="人员状态">
+          <el-select v-model="filterForm.work_status" placeholder="请选择" clearable>
+            <el-option label="在职" :value="1" />
+            <el-option label="离职" :value="2" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -339,7 +337,7 @@ const filterForm = reactive({
   admin_dept: '',
   staff_category: '',
   emp_status: '',
-  search_work_status: 1 // 默认查在职
+  work_status: ''
 })
 
 // 分页
@@ -432,23 +430,8 @@ const loadData = async () => {
       search: filterForm.keyword || undefined,
       admin_dept: filterForm.admin_dept || undefined,
       staff_category: filterForm.staff_category || undefined,
-      admin_dept: filterForm.admin_dept || undefined,
-      staff_category: filterForm.staff_category || undefined,
       emp_status: filterForm.emp_status || undefined,
-      work_status: filterForm.search_work_status === '' ? '' : filterForm.search_work_status // 空串代表全部
-    }
-    // 特殊处理：如果需要查全部（即发空串），request params会自动忽略undefined，但我们需要发一个空串key
-    // 不过由于axios behavior，params里的空串可能会被忽略。
-    // 为了配合后端 "if 'work_status' in params"，我们需要确保key存在。
-    // 如果是 ''，axios可能会保留 key=''。我们来验证一下。
-    // 另外一种方式：如果选全部，传 undefined？不行，后端说没key就默认1。
-    // 所以：选全部 -> 传 work_status: ''。
-    
-    // 修正逻辑：
-    if (filterForm.search_work_status === '') {
-        params.work_status = '' 
-    } else {
-        params.work_status = filterForm.search_work_status
+      work_status: filterForm.work_status || undefined
     }
     const res = await request.get('/users/', { params })
     tableData.value = res.data.results || res.data
@@ -473,7 +456,7 @@ const handleReset = () => {
   filterForm.admin_dept = ''
   filterForm.staff_category = ''
   filterForm.emp_status = ''
-  filterForm.search_work_status = 1 // 重置回在职
+  filterForm.work_status = ''
   handleSearch()
 }
 

@@ -13,7 +13,7 @@
       <el-table :data="tableData" v-loading="loading" style="width: 100%" row-key="id" default-expand-all>
         <el-table-column prop="dept_name" label="名称" min-width="200" />
         <el-table-column prop="dept_code" label="编码" width="150" align="center" />
-        <el-table-column prop="dept_type_display" label="类型" width="120" align="center">
+        <el-table-column prop="dept_type_display" label="类型" width="140" align="center">
           <template #default="{ row }">
             <el-tag :type="getDeptTypeTag(row.dept_type)">{{ row.dept_type_display }}</el-tag>
           </template>
@@ -139,7 +139,14 @@ const loadData = async () => {
         params.dept_type = 'WARD'
     }
     const res = await request.get('/departments/', { params })
-    tableData.value = res.data.results || res.data
+    let data = res.data.results || res.data
+    
+    // 如果是科室管理（ALL），则过滤掉病区
+    if (props.type === 'ALL') {
+        data = data.filter(item => item.dept_type !== 'WARD')
+    }
+    
+    tableData.value = data
     
     // 如果是编辑上级，需要完整的树
     if (!deptTree.value.length) {

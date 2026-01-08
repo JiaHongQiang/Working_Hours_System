@@ -21,9 +21,29 @@ const routes = [
             },
             {
                 path: 'user',
-                name: 'User',
-                component: () => import('@/views/User/Index.vue'),
-                meta: { title: '人员管理' }
+                name: 'UserManager',
+                meta: { title: '用户管理' },
+                redirect: '/user/index',
+                children: [
+                    {
+                        path: 'index',
+                        name: 'UserIndex',
+                        component: () => import('@/views/User/Index.vue'),
+                        meta: { title: '用户管理' }
+                    },
+                    {
+                        path: 'department',
+                        name: 'DepartmentIndex',
+                        component: () => import('@/views/Department/Index.vue'),
+                        meta: { title: '科室管理' }
+                    },
+                    {
+                        path: 'ward',
+                        name: 'WardIndex',
+                        component: () => import('@/views/Department/Ward.vue'),
+                        meta: { title: '病区管理' }
+                    }
+                ]
             },
             {
                 path: 'roster',

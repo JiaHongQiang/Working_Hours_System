@@ -15,10 +15,15 @@
           <el-icon><HomeFilled /></el-icon>
           <span>首页</span>
         </el-menu-item>
-        <el-menu-item index="/user">
-          <el-icon><User /></el-icon>
-          <span>人员管理</span>
-        </el-menu-item>
+        <el-sub-menu index="/user">
+          <template #title>
+            <el-icon><User /></el-icon>
+            <span>用户管理</span>
+          </template>
+          <el-menu-item index="/user/index">用户管理</el-menu-item>
+          <el-menu-item index="/user/department">科室管理</el-menu-item>
+          <el-menu-item index="/user/ward">病区管理</el-menu-item>
+        </el-sub-menu>
         <el-menu-item index="/roster">
           <el-icon><Calendar /></el-icon>
           <span>排班管理</span>

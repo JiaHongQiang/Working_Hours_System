@@ -222,6 +222,15 @@
 
         <el-row :gutter="20">
           <el-col :span="12">
+            <el-form-item label="人员状态" prop="work_status">
+               <el-select v-model="formData.work_status" placeholder="请选择" style="width: 100%">
+                <el-option label="在职" :value="1" />
+                <el-option label="离职" :value="2" />
+                <!-- 0是未知，一般不用 -->
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
             <el-form-item label="职称" prop="job_title">
               <el-input v-model="formData.job_title" placeholder="如：主任医师、护士长" />
             </el-form-item>
@@ -341,6 +350,7 @@ const defaultFormData = {
   scheduling_ward: null,
   staff_category: 'NURSE',
   emp_status: 'CONTRACT',
+  work_status: 1,
   job_title: '',
   base_hourly_rate: 0,
   phone: '',
@@ -460,24 +470,44 @@ const handleAdd = () => {
 }
 
 // 编辑
-const handleEdit = (row) => {
+const handleEdit = async (row) => {
   isEdit.value = true
-  Object.assign(formData, {
-    id: row.id,
-    emp_code: row.emp_code,
-    full_name: row.full_name,
-    admin_dept: row.admin_dept,
-    scheduling_ward: row.scheduling_ward,
-    staff_category: row.staff_category,
-    emp_status: row.emp_status,
-    job_title: row.job_title || '',
-    base_hourly_rate: row.base_hourly_rate || 0,
-    phone: row.phone || '',
-    id_card: row.id_card || '',
-    hire_date: row.hire_date || '',
-    is_scheduling_required: row.is_scheduling_required
-  })
   dialogVisible.value = true
+  // 先重置表单防止残留
+  // Object.assign(formData, defaultFormData) // 不能直接重置，否则ID没了
+  // 先填入已知的基础信息，避免弹窗空白
+  Object.assign(formData, {
+      ...defaultFormData,
+      id: row.id,
+      emp_code: row.emp_code,
+      full_name: row.full_name
+  })
+  
+  // 获取完整详情
+  try {
+      const res = await request.get(`/users/${row.id}/`)
+      const data = res.data
+      Object.assign(formData, {
+        id: data.id,
+        emp_code: data.emp_code,
+        full_name: data.full_name,
+        admin_dept: data.admin_dept,
+        scheduling_ward: data.scheduling_ward,
+        staff_category: data.staff_category,
+        emp_status: data.emp_status,
+        work_status: data.work_status,
+        job_title: data.job_title || '',
+        base_hourly_rate: data.base_hourly_rate || 0,
+        // 处理可能为null的字段
+        phone: data.phone || '',
+        id_card: data.id_card || '',
+        hire_date: data.hire_date || '',
+        is_scheduling_required: data.is_scheduling_required
+      })
+  } catch (err) {
+      ElMessage.error('获取员工详情失败')
+      dialogVisible.value = false
+  }
 }
 
 // 提交表单

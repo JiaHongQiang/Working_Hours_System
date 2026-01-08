@@ -178,15 +178,15 @@ class OvertimeRecordViewSet(viewsets.ModelViewSet):
             status='APPROVED',
             work_date__gte=start_date,
             work_date__lte=end_date
-        ).select_related('user', 'user__department')
+        ).select_related('user', 'user__admin_dept')
         
         if department_id:
-            queryset = queryset.filter(user__department_id=department_id)
+            queryset = queryset.filter(user__admin_dept_id=department_id)
         
         # 按员工分组统计
         from django.db.models import Case, When, IntegerField
         
-        stats = queryset.values('user__id', 'user__full_name', 'user__department__name').annotate(
+        stats = queryset.values('user__id', 'user__full_name', 'user__admin_dept__name').annotate(
             total_hours=Sum('approved_ot_duration'),
             hours_1_5x=Sum(Case(
                 When(multiplier=1.5, then='approved_ot_duration'),

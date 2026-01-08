@@ -151,6 +151,19 @@ Page({
         }
     },
 
+    // 登录
+    goLogin() {
+        app.login().then(data => {
+            if (data.user) {
+                this.setData({ userInfo: data.user })
+                this.loadStats()
+            }
+        }).catch(err => {
+            console.error('登录失败:', err)
+            wx.showToast({ title: err.message || '登录失败', icon: 'none' })
+        })
+    },
+
     // 退出登录
     logout() {
         wx.showModal({
@@ -169,6 +182,17 @@ Page({
                     // 开发模式重新设置模拟用户
                     if (app.globalData.devMode) {
                         app.setMockUser()
+                        this.loadUserInfo()
+                        this.loadStats()
+                    } else {
+                        // 生产模式：清空页面数据
+                        this.setData({
+                            userInfo: {},
+                            stats: {
+                                thisMonth: { workDays: 0, overtimeHours: 0, overtimePay: 0 },
+                                thisQuarter: { workDays: 0, overtimeHours: 0, overtimePay: 0 }
+                            }
+                        })
                     }
 
                     wx.showToast({ title: '已退出登录', icon: 'success' })

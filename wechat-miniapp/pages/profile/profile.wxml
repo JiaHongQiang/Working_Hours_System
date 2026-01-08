@@ -80,9 +80,22 @@
         </van-cell-group>
     </view>
 
-    <!-- 退出登录 -->
+    <!-- 登录/退出登录按钮 -->
     <view class="logout-section">
+        <!-- 未登录时显示登录按钮 -->
         <van-button 
+            wx:if="{{ !userInfo.id }}"
+            type="primary" 
+            block 
+            round
+            bindtap="goLogin"
+        >
+            登录
+        </van-button>
+        
+        <!-- 已登录时显示退出按钮 -->
+        <van-button 
+            wx:else
             type="default" 
             block 
             plain

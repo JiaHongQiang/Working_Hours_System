@@ -60,9 +60,11 @@ request.interceptors.response.use(
             }
         }
 
-        // 其他错误
-        const message = error.response?.data?.detail || error.response?.data?.error || error.message || '请求失败'
-        ElMessage.error(message)
+        // 如果配置了隐藏错误提示，则不弹出
+        if (!error.config?.hideError) {
+            const message = error.response?.data?.detail || error.response?.data?.error || error.message || '请求失败'
+            ElMessage.error(message)
+        }
 
         return Promise.reject(error)
     }

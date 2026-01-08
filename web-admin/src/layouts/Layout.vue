@@ -20,7 +20,7 @@
             <el-icon><User /></el-icon>
             <span>用户管理</span>
           </template>
-          <el-menu-item index="/user/index">用户管理</el-menu-item>
+          <el-menu-item index="/user/index">人员管理</el-menu-item>
           <el-menu-item index="/user/department">科室管理</el-menu-item>
           <el-menu-item index="/user/ward">病区管理</el-menu-item>
         </el-sub-menu>

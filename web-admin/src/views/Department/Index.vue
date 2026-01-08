@@ -177,11 +177,12 @@ const handleSubmit = async () => {
         if (!valid) return
         submitLoading.value = true
         try {
+            const config = { hideError: true } // 自定义处理错误
             if (isEdit.value) {
-                await request.patch(`/departments/${formData.id}/`, formData)
+                await request.patch(`/departments/${formData.id}/`, formData, config)
                 ElMessage.success('更新成功')
             } else {
-                await request.post('/departments/', formData)
+                await request.post('/departments/', formData, config)
                 ElMessage.success('创建成功')
             }
             dialogVisible.value = false
@@ -191,15 +192,19 @@ const handleSubmit = async () => {
              let message = '操作失败'
              if (err.response?.data) {
                  const data = err.response.data
-                 // 处理 Django DRF 的错误格式
                  if (typeof data === 'object') {
-                    // 如果是字段错误，如 {"dept_code": ["具有 该 编码 的 Department 已存在。"]}
                     const firstKey = Object.keys(data)[0]
                     const firstError = Array.isArray(data[firstKey]) ? data[firstKey][0] : data[firstKey]
-                    message = `${firstKey}: ${firstError}`
-                    // 尝试翻译常用字段名
-                    if (firstKey === 'dept_code') message = `编码重复或无效: ${firstError}`
-                    if (firstKey === 'detail') message = firstError
+                    
+                    // 自定义提示文案
+                    if (firstKey === 'dept_code' && firstError.includes('已存在')) {
+                        message = '该编码已存在'
+                    } else if (firstKey === 'dept_name' && firstError.includes('已存在')) {
+                         message = '该名称已存在'
+                    } else {
+                        message = `${firstKey}: ${firstError}`
+                        if (firstKey === 'detail') message = firstError
+                    }
                  }
              }
              ElMessage.error(message)

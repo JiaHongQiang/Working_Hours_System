@@ -37,6 +37,8 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         # 如果没有明确指定work_status，默认只返回在职员工
         if 'work_status' not in self.request.query_params:
             queryset = queryset.filter(work_status=1)
+        # 否则，如果传了work_status（包括空字符串），交由FilterBackend处理
+        # 注意：如果传了空字符串，DjangoFilterBackend会自动忽略，从而实现查询全部
         return queryset
     
     def get_serializer_class(self):

@@ -182,7 +182,49 @@ class EmployeeViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    def test_login(self, request):
+        """
+        测试登录（仅DEBUG模式可用）
+        POST /api/users/test_login/
+        
+        Body:
+        {
+            "emp_code": "工号"
+        }
+        """
+        if not settings.DEBUG:
+            return Response(
+                {'error': '测试登录仅在开发环境可用'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        emp_code = request.data.get('emp_code')
+        if not emp_code:
+            return Response(
+                {'error': '请输入工号'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            employee = Employee.objects.get(emp_code=emp_code, work_status=1)
+            
+            # 生成JWT Token
+            from rest_framework_simplejwt.tokens import RefreshToken
+            refresh = RefreshToken.for_user(employee)
+            
+            return Response({
+                'message': '登录成功',
+                'token': str(refresh.access_token),
+                'refresh_token': str(refresh),
+                'user': EmployeeSerializer(employee).data
+            })
+        except Employee.DoesNotExist:
+            return Response(
+                {'error': '工号不存在或已离职'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
 
 # 兼容旧的URL配置
 UserViewSet = EmployeeViewSet
-

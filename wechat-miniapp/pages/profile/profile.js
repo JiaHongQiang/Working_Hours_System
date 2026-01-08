@@ -151,16 +151,47 @@ Page({
         }
     },
 
-    // 登录
+    // 登录（测试模式：输入工号登录）
     goLogin() {
-        app.login().then(data => {
-            if (data.user) {
-                this.setData({ userInfo: data.user })
-                this.loadStats()
+        wx.showModal({
+            title: '测试登录',
+            content: '请输入工号',
+            editable: true,
+            placeholderText: '请输入工号',
+            success: (res) => {
+                if (res.confirm && res.content) {
+                    const empCode = res.content.trim()
+                    if (!empCode) {
+                        wx.showToast({ title: '请输入工号', icon: 'none' })
+                        return
+                    }
+
+                    // 调用测试登录接口
+                    app.request({
+                        url: '/users/test_login/',
+                        method: 'POST',
+                        data: { emp_code: empCode },
+                        skipAuth: true
+                    }).then(data => {
+                        if (data.token) {
+                            // 保存token和用户信息
+                            wx.setStorageSync('token', data.token)
+                            wx.setStorageSync('userInfo', data.user)
+                            app.globalData.token = data.token
+                            app.globalData.userInfo = data.user
+
+                            // 刷新页面数据
+                            this.setData({ userInfo: data.user })
+                            this.loadStats()
+
+                            wx.showToast({ title: '登录成功', icon: 'success' })
+                        }
+                    }).catch(err => {
+                        console.error('登录失败:', err)
+                        wx.showToast({ title: err.message || '登录失败', icon: 'none' })
+                    })
+                }
             }
-        }).catch(err => {
-            console.error('登录失败:', err)
-            wx.showToast({ title: err.message || '登录失败', icon: 'none' })
         })
     },
 

@@ -18,9 +18,9 @@
             <el-tag :type="getDeptTypeTag(row.dept_type)">{{ row.dept_type_display }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="manager_name" label="负责人" min-width="120" align="center">
+        <el-table-column prop="parent_name" label="所属科室" min-width="120" align="center">
              <template #default="{ row }">
-                {{ row.manager_name || '-' }}
+                {{ row.parent_name || '-' }}
              </template>
         </el-table-column>
         <el-table-column prop="is_active" label="状态" width="100" align="center">

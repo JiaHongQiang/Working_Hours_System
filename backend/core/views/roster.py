@@ -17,11 +17,20 @@ from core.serializers import (
 class ShiftDefinitionViewSet(viewsets.ModelViewSet):
     """班次定义ViewSet"""
     
-    queryset = ShiftDefinition.objects.filter(is_active=True)
-    serializer_class = ShiftDefinitionSerializer
-    filterset_fields = ['is_cross_day', 'is_active']
     search_fields = ['name']
     ordering = ['start_time']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # 默认只显示启用的，除非指定 show_all=true
+        if self.request.query_params.get('show_all') != 'true':
+            queryset = queryset.filter(is_active=True)
+        return queryset
+
+    def perform_destroy(self, instance):
+        """软删除：仅标记为停用"""
+        instance.is_active = False
+        instance.save(update_fields=['is_active'])
 
 
 class RosterViewSet(viewsets.ModelViewSet):

@@ -24,10 +24,15 @@
           <el-menu-item index="/user/department">科室管理</el-menu-item>
           <el-menu-item index="/user/ward">病区管理</el-menu-item>
         </el-sub-menu>
-        <el-menu-item index="/roster">
-          <el-icon><Calendar /></el-icon>
-          <span>排班管理</span>
-        </el-menu-item>
+
+        <el-sub-menu index="/shift">
+          <template #title>
+            <el-icon><Calendar /></el-icon>
+            <span>排班管理</span>
+          </template>
+          <el-menu-item index="/shift/index">班次定义</el-menu-item>
+        </el-sub-menu>
+        
         <el-menu-item index="/attendance">
           <el-icon><Clock /></el-icon>
           <span>考勤管理</span>
